@@ -8,7 +8,7 @@
 #![allow(dead_code)]
 use std::cmp::Ordering;
 
-fn search(slice: &[isize], element: isize) -> Option<usize> {
+fn search<T: Ord>(slice: &[T], element: T) -> Option<usize> {
     let mid_index = slice.len() / 2;
     match element.cmp(&slice[mid_index]) {
         Ordering::Equal => {
@@ -26,7 +26,7 @@ fn search(slice: &[isize], element: isize) -> Option<usize> {
     }
 }
 
-fn binary_search(slice: &[isize], element: isize) -> Option<usize> {
+fn binary_search<T: Ord>(slice: &[T], element: T) -> Option<usize> {
     if slice.is_empty() {
         return None;
     }
