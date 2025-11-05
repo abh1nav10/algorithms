@@ -4,4 +4,5 @@ mod counting_sort;
 mod insertion_sort;
 pub mod merge_sort;
 mod quick_sort;
+mod selection_sort;
 mod subsequence_sum;
