@@ -17,7 +17,7 @@ impl<T> Node<T> {
     fn new(value: T) -> Self {
         Self {
             value: ManuallyDrop::new(value),
-            children: [None; 2],
+            children: std::array::from_fn(|_| None),
         }
     }
 }
@@ -85,32 +85,37 @@ impl<T: Ord> Tree<T> {
 
     pub fn delete(&mut self, element: &T) {
         let found;
-        let mut parent = std::ptr::null_mut();
-        // Bit for indicating whether the left or right field of the
-        // parent has to be changed!
-        // true -> right
-        // false -> left
-        let mut bit: bool = false;
+        let mut parent: *mut Option<NonNull<Node<T>>> = std::ptr::null_mut();
         let mut current = &self.root;
         let ptr;
         loop {
             if let Some(node) = current {
                 let p = node.as_ptr();
-                let node = unsafe { &(*p) };
+                let mut node = unsafe { &mut (*p) };
                 match element.cmp(&node.value) {
                     Ordering::Less => {
-                        bit = false;
-                        parent = p;
+                        // Raw pointers are untagged in Stacked Borrows. Therefore,
+                        // at this point We use the mutable reference to create the raw
+                        // pointer that accounts for its usage which pops every tag above it
+                        // out of the stack which is fine.
+                        parent = &mut node.children[0] as *mut _;
+                        // We create a shared reference here, which pushes mutable references
+                        // and even mutable raw pointers above it out of the stack which is fine
+                        // because at this point there are None!
                         current = &node.children[0];
                     }
                     Ordering::Greater => {
-                        bit = true;
-                        parent = p;
+                        parent = &mut node.children[1] as *mut _;
                         current = &node.children[1];
                     }
                     Ordering::Equal => {
-                        found = node;
                         ptr = p;
+                        // We dereference again because we dont want to keep a mutable reference
+                        // active for the duration of the call when there is no requirement to do
+                        // so! Using p here will pop all tagged items in the stack above it but
+                        // it won't pop the parent pointer that we had created which is all we
+                        // need!
+                        found = unsafe { &(*p) };
                         break;
                     }
                 }
@@ -141,52 +146,67 @@ impl<T: Ord> Tree<T> {
                     (*prev).children[0] = right;
 
                     // The line of code that MIRI probably won't like!
+                    // It does approve it because both pointers are pointing
+                    // at different allocations!
                     std::mem::swap(&mut (*ptr).value, &mut (*current).value);
+
+                    ManuallyDrop::drop(&mut (*current).value);
 
                     let _ = Box::from_raw(current);
                 }
             } else {
-                let child = found.children[1];
-                if bit {
-                    // Inline pointer deref to prevent the mutable reference from
-                    // being created before the use of the shared reference to
-                    // make MIRI happy!
-                    // creating this temporary child variable instead of inlining it
-                    // to prevent the mutable reference from being created before the
-                    // use of any shared reference as that would get it popped out of the
-                    // stack by MIRI!
-                    unsafe { &mut (*parent) }.children[1] = child;
-                } else {
-                    unsafe { &mut (*parent) }.children[0] = child;
+                let cr = cr.as_ptr();
+                let right = unsafe { &mut (*cr) };
+                let ptr = unsafe { &mut (*ptr) };
+
+                std::mem::swap(&mut ptr.value, &mut right.value);
+
+                let right = right.children[1];
+                ptr.children[1] = right;
+                unsafe {
+                    ManuallyDrop::drop(&mut (*cr).value);
+                    let _ = Box::from_raw(cr);
                 }
-                let _ = unsafe { Box::from_raw(ptr) };
             }
-        } else if found.children[0].is_some() && !parent.is_null() {
+        } else if found.children[0].is_some() {
             let child = found.children[0];
-            if bit {
-                unsafe { &mut (*parent) }.children[1] = child;
+            if !parent.is_null() {
+                unsafe {
+                    (*parent) = child;
+                }
             } else {
-                unsafe { &mut (*parent) }.children[0] = child;
+                self.root = child;
             }
-            let _ = unsafe { Box::from_raw(ptr) };
-        } else if found.children[1].is_some() && !parent.is_null() {
+            unsafe {
+                ManuallyDrop::drop(&mut (*ptr).value);
+                let _ = Box::from_raw(ptr);
+            }
+        } else if found.children[1].is_some() {
             let child = found.children[1];
-            if bit {
-                unsafe { &mut (*parent) }.children[1] = child;
+            if !parent.is_null() {
+                unsafe {
+                    (*parent) = child;
+                }
             } else {
-                unsafe { &mut (*parent) }.children[0] = child;
+                self.root = child;
             }
-            let _ = unsafe { Box::from_raw(ptr) };
+            unsafe {
+                ManuallyDrop::drop(&mut (*ptr).value);
+                let _ = Box::from_raw(ptr);
+            }
         } else {
             if !parent.is_null() {
-                let parent = unsafe { &mut (*parent) };
-                if bit {
-                    parent.children[1] = None;
-                } else {
-                    parent.children[0] = None;
+                unsafe {
+                    (*parent) = None;
                 }
+            } else {
+                // It is the root node!
+                self.root = None;
             }
-            let _ = unsafe { Box::from_raw(ptr) };
+            unsafe {
+                ManuallyDrop::drop(&mut (*ptr).value);
+                let _ = Box::from_raw(ptr);
+            }
         }
     }
 
@@ -266,7 +286,7 @@ impl<T: Ord> Tree<T> {
         Some(&found.value)
     }
 
-    pub fn search(&mut self, element: &T) -> bool {
+    pub fn search(&self, element: &T) -> bool {
         let mut current = &self.root;
         loop {
             if let Some(node) = current {
@@ -310,9 +330,9 @@ impl<T: Ord> Tree<T> {
         Some(&current.value)
     }
 
-    pub fn traverse_in_order<F>(&mut self, closure: F)
+    pub fn traverse_in_order<F>(&self, mut closure: F)
     where
-        F: Fn(&T),
+        F: FnMut(&T),
     {
         let mut stack = Vec::with_capacity(self.length);
         let mut current = &self.root;
@@ -405,7 +425,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test() {
+    fn insert() {
         let mut new = Tree::new(7);
         new.insert(9);
         new.insert(6);
@@ -413,10 +433,63 @@ mod tests {
         new.insert(4);
         new.insert(13);
         new.insert(97);
-        new.delete(&13);
-        assert_eq!(6, new.length());
-        for element in new.into_iter() {
-            println!("{}", element);
-        }
+        assert_eq!(7, new.length());
+    }
+
+    #[test]
+    fn in_order() {
+        let mut new = Tree::new(9);
+        new.insert(76);
+        new.insert(23);
+        new.insert(56);
+        new.insert(12);
+        new.insert(98);
+        new.insert(2);
+        let mut vec = Vec::with_capacity(7);
+        new.traverse_in_order(|e| vec.push(*e));
+        assert!(vec.is_sorted());
+
+        let successor = new.in_order_successor(&23);
+        assert!(successor.is_some());
+        assert_eq!(**successor.unwrap(), 56);
+
+        let predecessor = new.in_order_predecessor(&98);
+        assert!(predecessor.is_some());
+        assert_eq!(**predecessor.unwrap(), 76);
+    }
+
+    #[test]
+    fn smallest_largest_search() {
+        let mut tree = Tree::new(67);
+        tree.insert(45);
+        tree.insert(103);
+        tree.insert(34);
+        tree.insert(59);
+        tree.insert(99);
+
+        assert_eq!(tree.smallest(), Some(&34));
+        assert_eq!(tree.largest(), Some(&103));
+
+        assert!(tree.search(&59));
+        assert!(!tree.search(&11));
+    }
+
+    #[test]
+    fn delete() {
+        let mut tree = Tree::new(10);
+        tree.insert(33);
+        tree.insert(12);
+        tree.insert(78);
+        tree.insert(45);
+        tree.insert(67);
+
+        // no parent
+        tree.delete(&12);
+
+        tree.delete(&78);
+        tree.delete(&33);
+        tree.delete(&45);
+
+        assert_eq!(tree.length(), 2);
     }
 }
