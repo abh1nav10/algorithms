@@ -45,9 +45,12 @@ where
     }
 
     pub fn insert_node(&mut self, value: Rc<T>, edges: Vec<(Rc<T>, W)>) {
+        let mut set = HashSet::new();
         let mut edge = Vec::with_capacity(edges.len());
         for element in edges {
-            if let Some(index) = self.list.get(&element.0) {
+            if let Some(index) = self.list.get(&element.0)
+                && set.insert(*index)
+            {
                 edge.push((*index, element.1));
             }
         }
@@ -65,8 +68,13 @@ where
     pub fn connect(&mut self, connect: Rc<T>, to: Rc<T>, weight: W) -> Result<(), &str> {
         if let Some(index) = self.list.get(&connect) {
             if let Some(i) = self.list.get(&to) {
-                self.nodes[*index].edges.push((*i, weight));
-                Ok(())
+                let edge = (*i, weight);
+                if !self.nodes[*index].edges.iter().any(|(first, _)| first == i) {
+                    self.nodes[*index].edges.push(edge);
+                    Ok(())
+                } else {
+                    Err("The connection already exists!")
+                }
             } else {
                 Err("The node being connected to is not a part of the graph!")
             }
@@ -202,8 +210,37 @@ where
         count != len
     }
 
-    pub fn remove_node(&self, node: Rc<T>) -> Result<(), &str> {
-        todo!()
+    pub fn remove_node(&mut self, node: Rc<T>) -> Result<(), &str> {
+        let len = self.nodes.len() - 1;
+        if let Some(element) = self.list.remove(&node) {
+            for node in self.nodes.iter_mut() {
+                for (index, (e, _)) in node.edges.iter().enumerate() {
+                    if *e == element {
+                        node.edges.swap_remove(index);
+                        // Break out of the inner loop because it cannot have duplicate edges!
+                        break;
+                    }
+                }
+            }
+            // If element equals to length, that is an edge case where out fixup is complete!
+            if element != len {
+                let key = &self.nodes[len].value;
+                *self.list.get_mut(key).expect("Has to be there") = element;
+                for node in self.nodes.iter_mut() {
+                    for (e, _) in node.edges.iter_mut() {
+                        if *e == len {
+                            *e = element;
+                            // Break out of the inner loop because it cannot have duplicate edges!
+                            break;
+                        }
+                    }
+                }
+            }
+            self.nodes.swap_remove(element);
+            Ok(())
+        } else {
+            Err("The node does not exist in the graph!")
+        }
     }
 
     pub fn dijkstra_shortest_path(&self, source: Rc<T>, dest: Rc<T>) {
@@ -230,5 +267,23 @@ mod tests {
         graph.connect(Rc::clone(&n3), Rc::clone(&n1), 0);
 
         assert!(graph.has_cycle());
+    }
+
+    #[test]
+    fn node_removal() {
+        let mut graph = Graph::new();
+        let n1 = Rc::new(1);
+        let n2 = Rc::new(2);
+        let n3 = Rc::new(3);
+        graph.insert_node(Rc::clone(&n3), vec![]);
+        graph.insert_node(Rc::clone(&n2), vec![(Rc::clone(&n3), 0)]);
+        graph.insert_node(Rc::clone(&n1), vec![(Rc::clone(&n2), 0)]);
+        graph.connect(Rc::clone(&n3), Rc::clone(&n1), 0);
+        assert!(graph.has_cycle());
+
+        let res = graph.remove_node(Rc::clone(&n3));
+
+        assert!(res.is_ok());
+        assert!(!graph.has_cycle());
     }
 }
