@@ -37,16 +37,13 @@ fn iterator() {
     assert!(elements.pop().is_none());
 }
 
-use rand::Rng;
 use std::time::Instant;
 
 #[test]
 fn measure() {
     let mut map = HashTable::new();
 
-    let mut rng = rand::rng();
-
-    let keys = (0..1000).map(|_| rng.random::<u32>()).collect::<Vec<_>>();
+    let keys = (0..1000).map(|_| rand::random::<u32>()).collect::<Vec<_>>();
     let cloned = keys.clone();
 
     let time = Instant::now();

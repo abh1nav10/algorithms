@@ -1,4 +1,4 @@
-// implementation of the merge sort algorithm
+// Implementation of the merge sort algorithm!
 
 #![allow(dead_code)]
 
@@ -32,14 +32,14 @@ fn merge<'a>(first: &'a mut [isize], second: &'a mut [isize]) -> Vec<isize> {
             pointer2 += 1;
         }
         if first.len() - pointer1 == 0 {
-            for i in pointer2..second.len() {
-                vec.push(second[i]);
+            for element in second[pointer2..].iter() {
+                vec.push(*element);
             }
             break;
         }
         if second.len() - pointer2 == 0 {
-            for i in pointer1..first.len() {
-                vec.push(first[i]);
+            for element in first[pointer1..].iter() {
+                vec.push(*element);
             }
             break;
         }

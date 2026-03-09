@@ -1,15 +1,13 @@
-// implementation of the insertion sort sorting algorithm
+// Implementation of the Insertion Sort sorting algorithm!
 
 #![allow(dead_code)]
 
 fn sort(slice: &mut [isize]) {
     for i in 0..slice.len() {
         let mut index = i;
-        for j in (0..i).into_iter().rev() {
+        for j in (0..i).rev() {
             if slice[j] > slice[index] {
-                let current = slice[j];
-                slice[j] = slice[index];
-                slice[index] = current;
+                slice.swap(index, j);
                 index = j;
             }
         }

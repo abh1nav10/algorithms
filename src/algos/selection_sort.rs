@@ -1,4 +1,4 @@
-// implementation of the unstable version of the selection sort algorithm
+// IMPLEMENTATION of the unstable version of the selection sort algorithm!
 
 #![allow(dead_code)]
 

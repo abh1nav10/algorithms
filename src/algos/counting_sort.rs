@@ -1,14 +1,14 @@
-// implementation of the counting sort algorithm
+// Implementation of the counting sort algorithm!
 
-// good for a sequence containing small range of positive integer input values
+// Good for a sequence containing small range of positive integer input values..
 
 #![allow(dead_code)]
 
 fn largest_element(slice: &mut [usize]) -> usize {
     let mut largest = 0;
-    for i in 0..slice.len() {
-        if slice[i] > largest {
-            largest = slice[i];
+    for element in slice.iter() {
+        if *element > largest {
+            largest = *element;
         }
     }
     largest
@@ -21,10 +21,10 @@ fn sort(slice: &mut [usize]) -> Vec<usize> {
         new_vec[slice[i]] += 1;
     }
     let mut sorted_vec = Vec::with_capacity(slice.len());
-    for element in 0..new_vec.len() {
-        let occurence = new_vec[element];
+    for (index, element) in new_vec.iter().enumerate() {
+        let occurence = *element;
         for _ in 0..occurence {
-            sorted_vec.push(element);
+            sorted_vec.push(index);
         }
     }
     sorted_vec

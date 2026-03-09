@@ -1,4 +1,4 @@
-// implementation of the quick sort algorithm using the lomuto partition algorithm
+// Implementation of the Quick Sort Algorithm using the Lomuto Partition Algorithm!
 
 #![allow(dead_code)]
 

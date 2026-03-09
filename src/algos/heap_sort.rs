@@ -1,4 +1,4 @@
-#![allow(unused)]
+#![allow(dead_code)]
 
 fn max_heapify<T: Ord>(slice: &mut [T], index: usize, heap_size: usize) {
     let mut index = index;

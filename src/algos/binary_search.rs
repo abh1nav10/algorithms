@@ -1,9 +1,9 @@
-// implementation of the binary search algorithm
+// Implementation of the binary search algorithm!
 
-// the caller is required to sort the array first as binary search works on a sorted array...
+// The caller is required to sort the array first as binary search works on a sorted array...
 // making the function sort the array as a part of its implementation is not good as we would be
 // returning an index that might lead to a different value in the unsorted array...therefore it is
-// better for the user to sort it first to avoid confusion
+// better for the user to sort it first to avoid confusion..
 
 #![allow(dead_code)]
 use std::cmp::Ordering;
@@ -11,16 +11,10 @@ use std::cmp::Ordering;
 fn search<T: Ord>(slice: &[T], element: T) -> Option<usize> {
     let mid_index = slice.len() / 2;
     match element.cmp(&slice[mid_index]) {
-        Ordering::Equal => {
-            return Some(mid_index);
-        }
+        Ordering::Equal => Some(mid_index),
         Ordering::Greater => {
             let result = binary_search(&slice[(mid_index + 1)..], element);
-            if let Some(index) = result {
-                return Some(mid_index + index + 1);
-            } else {
-                return None;
-            }
+            result.map(|index| mid_index + index + 1)
         }
         Ordering::Less => binary_search(&slice[..mid_index], element),
     }
@@ -39,6 +33,6 @@ mod tests {
     #[test]
     fn test() {
         let array = [4, 5, 6, 7, 32, 34, 67, 109];
-        assert_eq!(4 as usize, binary_search(&array[..], 32).unwrap());
+        assert_eq!(4, binary_search(&array[..], 32).unwrap());
     }
 }

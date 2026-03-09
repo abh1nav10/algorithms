@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 // Writing a BST using raw pointers! Making it MIRI safe and avoiding Box to prevent it from
 // getting aliased which would be a lie to LLVM, making it vulnerable to optimizations that lead
 // UB.
@@ -91,7 +89,7 @@ impl<T: Ord> Tree<T> {
         loop {
             if let Some(node) = current {
                 let p = node.as_ptr();
-                let mut node = unsafe { &mut (*p) };
+                let node = unsafe { &mut (*p) };
                 match element.cmp(&node.value) {
                     Ordering::Less => {
                         // Raw pointers are untagged in Stacked Borrows. Therefore,

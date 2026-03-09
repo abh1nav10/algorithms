@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 //! A directed-weighted graph!
 
 use std::collections::{HashMap, HashSet, VecDeque};
@@ -243,7 +241,7 @@ where
         }
     }
 
-    pub fn dijkstra_shortest_path(&self, source: Rc<T>, dest: Rc<T>) {
+    pub fn dijkstra_shortest_path(&self, _source: Rc<T>, _dest: Rc<T>) {
         todo!()
     }
 }
@@ -264,7 +262,7 @@ mod tests {
 
         assert!(!graph.has_cycle());
 
-        graph.connect(Rc::clone(&n3), Rc::clone(&n1), 0);
+        let _ = graph.connect(Rc::clone(&n3), Rc::clone(&n1), 0);
 
         assert!(graph.has_cycle());
     }
@@ -278,7 +276,7 @@ mod tests {
         graph.insert_node(Rc::clone(&n3), vec![]);
         graph.insert_node(Rc::clone(&n2), vec![(Rc::clone(&n3), 0)]);
         graph.insert_node(Rc::clone(&n1), vec![(Rc::clone(&n2), 0)]);
-        graph.connect(Rc::clone(&n3), Rc::clone(&n1), 0);
+        let _ = graph.connect(Rc::clone(&n3), Rc::clone(&n1), 0);
         assert!(graph.has_cycle());
 
         let res = graph.remove_node(Rc::clone(&n3));
