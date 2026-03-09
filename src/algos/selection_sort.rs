@@ -1,7 +1,5 @@
 // IMPLEMENTATION of the unstable version of the selection sort algorithm!
 
-#![allow(dead_code)]
-
 fn sort<T: Ord>(slice: &mut [T]) {
     for i in 0..slice.len() {
         let mut shortest_index = i;
@@ -19,15 +17,4 @@ pub fn selection_sort<T: Ord>(slice: &mut [T]) {
         return;
     }
     sort(slice);
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test() {
-        let mut array = [4, 6, 2, 8, 9, -4, -7, -2];
-        selection_sort(&mut array[..]);
-        assert_eq!(array, [-7, -4, -2, 2, 4, 6, 8, 9]);
-    }
 }

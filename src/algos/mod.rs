@@ -1,9 +1,9 @@
-mod binary_search;
-mod bubble_sort;
-mod counting_sort;
-mod heap_sort;
-mod insertion_sort;
-mod merge_sort;
-mod quick_sort;
-mod selection_sort;
-mod subsequence_sum;
+pub mod binary_search;
+pub mod bubble_sort;
+pub mod counting_sort;
+pub mod heap_sort;
+pub mod insertion_sort;
+pub mod merge_sort;
+pub mod quick_sort;
+pub mod selection_sort;
+pub mod subsequence_sum;

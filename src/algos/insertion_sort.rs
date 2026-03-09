@@ -1,7 +1,5 @@
 // Implementation of the Insertion Sort sorting algorithm!
 
-#![allow(dead_code)]
-
 fn sort(slice: &mut [isize]) {
     for i in 0..slice.len() {
         let mut index = i;
@@ -14,21 +12,9 @@ fn sort(slice: &mut [isize]) {
     }
 }
 
-fn insertion_sort(slice: &mut [isize]) {
+pub fn insertion_sort(slice: &mut [isize]) {
     if slice.is_empty() || slice.len() == 1 {
         return;
     }
     sort(slice);
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn tests() {
-        let mut array = [-6, 4, -9, 14, -7, 16];
-        let slice = &mut array[..];
-        insertion_sort(slice);
-        assert_eq!(array, [-9, -7, -6, 4, 14, 16]);
-    }
 }

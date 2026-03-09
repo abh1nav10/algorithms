@@ -5,7 +5,6 @@
 // returning an index that might lead to a different value in the unsorted array...therefore it is
 // better for the user to sort it first to avoid confusion..
 
-#![allow(dead_code)]
 use std::cmp::Ordering;
 
 fn search<T: Ord>(slice: &[T], element: T) -> Option<usize> {
@@ -20,19 +19,9 @@ fn search<T: Ord>(slice: &[T], element: T) -> Option<usize> {
     }
 }
 
-fn binary_search<T: Ord>(slice: &[T], element: T) -> Option<usize> {
+pub fn binary_search<T: Ord>(slice: &[T], element: T) -> Option<usize> {
     if slice.is_empty() {
         return None;
     }
     search(slice, element)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test() {
-        let array = [4, 5, 6, 7, 32, 34, 67, 109];
-        assert_eq!(4, binary_search(&array[..], 32).unwrap());
-    }
 }

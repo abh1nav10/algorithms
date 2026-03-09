@@ -1,7 +1,5 @@
 // Implementation of the Quick Sort Algorithm using the Lomuto Partition Algorithm!
 
-#![allow(dead_code)]
-
 fn sort(slice: &mut [isize]) {
     let mut pivot_index = slice.len() - 1;
     let mut boundary_index: isize = -1;
@@ -24,20 +22,9 @@ fn sort(slice: &mut [isize]) {
     }
 }
 
-fn quick_sort(slice: &mut [isize]) {
+pub fn quick_sort(slice: &mut [isize]) {
     if slice.is_empty() || slice.len() == 1 {
         return;
     }
     sort(slice);
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test() {
-        let mut array = [4, 5, 6, -3, -7, -1, 17, -13, 12];
-        quick_sort(&mut array[..]);
-        assert_eq!(array, [-13, -7, -3, -1, 4, 5, 6, 12, 17]);
-    }
 }

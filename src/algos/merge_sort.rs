@@ -1,7 +1,5 @@
 // Implementation of the merge sort algorithm!
 
-#![allow(dead_code)]
-
 fn sort(slice: &mut [isize]) -> Vec<isize> {
     let mid_index = slice.len() / 2;
     let (first, second) = slice.split_at_mut(mid_index);
@@ -47,24 +45,10 @@ fn merge<'a>(first: &'a mut [isize], second: &'a mut [isize]) -> Vec<isize> {
     vec
 }
 
-fn merge_sort(slice: &mut [isize]) -> Option<Vec<isize>> {
+pub fn merge_sort(slice: &mut [isize]) -> Option<Vec<isize>> {
     if slice.is_empty() || slice.len() == 1 {
         return None;
     }
     let sorted = sort(slice);
     Some(sorted)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test() {
-        let mut array = [-7, 43, 56, 12, 32, -8, -6, 11, 5];
-        let slice = &mut array[..];
-        assert_eq!(
-            merge_sort(slice),
-            Some(vec![-8, -7, -6, 5, 11, 12, 32, 43, 56])
-        );
-    }
 }
