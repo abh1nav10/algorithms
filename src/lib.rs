@@ -12,4 +12,5 @@ pub use algos::selection_sort::selection_sort;
 pub use algos::subsequence_sum::max_subsequence_sum;
 pub use data_structures::graph::Graph;
 pub use data_structures::hashmap::HashTable;
+pub use data_structures::heap::{Heap, Index, MaxHeap, MinHeap};
 pub use data_structures::tree::Tree;
